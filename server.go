@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -27,7 +28,7 @@ func setupTimeZone() error {
 
 func fiberConfig() fiber.Config {
 	return fiber.Config{
-		Prefork:       true,
+		Prefork:       false,
 		CaseSensitive: true,
 		StrictRouting: true,
 		ServerHeader:  "Fiber",
@@ -35,24 +36,29 @@ func fiberConfig() fiber.Config {
 	}
 }
 
+func corsConfig() cors.Config {
+	return cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "",
+		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
+	}
+}
 func setupFiber() error {
 	app := fiber.New(fiberConfig())
+	app.Use(cors.New(corsConfig()))
 	redis := setupRedis()
 	db, err := setupDatabase()
 	if err != nil {
 		return err
 	}
 
-	bookRepository := repository.NewBookRepository(db)
 	reviewRepository := repository.NewReviewRepository(db)
 
-	bookService := service.NewBookController(bookRepository, reviewRepository)
-	reviewService := service.NewReviewController(bookRepository, reviewRepository)
+	reviewService := service.NewReviewController(reviewRepository)
 
-	bookHandler := handler.NewBookHandler(bookService, redis)
 	reviewHandler := handler.NewReviewHandler(reviewService, redis)
 
-	router.New(app, bookHandler, reviewHandler)
+	router.New(app, reviewHandler)
 	err = app.Listen(":" + os.Getenv("PORT"))
 	return err
 }

@@ -2,10 +2,12 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 
+	"books-backend/model/response"
 	"books-backend/service"
 )
 
@@ -15,7 +17,8 @@ type reviewHandler struct {
 }
 
 type IReviewHandler interface {
-	GetReview(c *fiber.Ctx) error
+	GetAllReview(c *fiber.Ctx) error
+	GetReviewByID(c *fiber.Ctx) error
 }
 
 func NewReviewHandler(service service.IReviewService, redis *redis.Client) reviewHandler {
@@ -25,10 +28,28 @@ func NewReviewHandler(service service.IReviewService, redis *redis.Client) revie
 	}
 }
 
-func (handler reviewHandler) GetReview(c *fiber.Ctx) error {
-	response, err := handler.reviewService.GetReviewList()
+func (handler reviewHandler) GetAllReview(c *fiber.Ctx) error {
+	name := c.Query("name")
+	var response *response.GetReviewListResponse
+	var err error
+	if name != "" {
+		response, err = handler.reviewService.GetReviewByBookName(name)
+	} else {
+		response, err = handler.reviewService.GetAllReviewList()
+	}
 	if err != nil {
 		return c.Status(http.StatusBadRequest).SendString("Internal server error")
 	}
-	return c.Status(http.StatusAccepted).JSON(response)
+	return c.Status(http.StatusOK).JSON(response)
+}
+func (handler reviewHandler) GetReviewByID(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).SendString("Unable to parse request")
+	}
+	response, err := handler.reviewService.GetReviewByID(id)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).SendString("Internal server error")
+	}
+	return c.Status(http.StatusOK).JSON(response)
 }

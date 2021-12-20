@@ -6,30 +6,51 @@ import (
 )
 
 type reviewService struct {
-	bookRepository   repository.IBookRepository
 	reviewRepository repository.IReviewRepository
 }
 
 type IReviewService interface {
-	GetReviewList() (*response.GetReviewResponse, error)
+	GetAllReviewList() (*response.GetReviewListResponse, error)
+	GetReviewByBookName(name string) (*response.GetReviewListResponse, error)
+	GetReviewByID(id int) (*response.GetReviewResponse, error)
 }
 
 func NewReviewController(
-	bookRepository repository.IBookRepository,
 	reviewRepository repository.IReviewRepository,
 ) reviewService {
 	return reviewService{
-		bookRepository:   bookRepository,
 		reviewRepository: reviewRepository,
 	}
 }
 
-func (service reviewService) GetReviewList() (*response.GetReviewResponse, error) {
-	reviews, err := service.reviewRepository.GetReviewList()
+func (service reviewService) GetReviewByBookName(name string) (*response.GetReviewListResponse, error) {
+	reviews, err := service.reviewRepository.GetReviewByBookName(name)
+	if err != nil {
+		return nil, err
+	}
+	response := response.GetReviewListResponse{
+		Reviews: reviews,
+	}
+	return &response, nil
+}
+
+func (service reviewService) GetReviewByID(id int) (*response.GetReviewResponse, error) {
+	reviews, err := service.reviewRepository.GetReviewByID(id)
 	if err != nil {
 		return nil, err
 	}
 	response := response.GetReviewResponse{
+		Review: reviews,
+	}
+	return &response, nil
+}
+
+func (service reviewService) GetAllReviewList() (*response.GetReviewListResponse, error) {
+	reviews, err := service.reviewRepository.GetAllReviewList()
+	if err != nil {
+		return nil, err
+	}
+	response := response.GetReviewListResponse{
 		Reviews: reviews,
 	}
 	return &response, nil
