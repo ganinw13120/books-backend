@@ -24,6 +24,7 @@ go build .
 ```
 
 Deployment is done by Google Cloud Platform, including GCP Cloud Build, GCP Cloud Run, and GCP Cloud Storage (storing .env file).
+See more on `cloudbuild.yaml`
 
 Dockerfile :
 
