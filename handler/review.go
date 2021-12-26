@@ -38,18 +38,18 @@ func (handler reviewHandler) GetAllReview(c *fiber.Ctx) error {
 		response, err = handler.reviewService.GetAllReviewList()
 	}
 	if err != nil {
-		return c.Status(http.StatusBadRequest).SendString("Internal server error")
+		return c.SendStatus(fiber.StatusBadRequest)
 	}
 	return c.Status(http.StatusOK).JSON(response)
 }
 func (handler reviewHandler) GetReviewByID(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).SendString("Unable to parse request")
+		return c.SendStatus(fiber.StatusBadRequest)
 	}
 	response, err := handler.reviewService.GetReviewByID(id)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).SendString("Internal server error")
+		return c.SendStatus(fiber.StatusBadRequest)
 	}
 	return c.Status(http.StatusOK).JSON(response)
 }
